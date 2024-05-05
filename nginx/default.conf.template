@@ -1,0 +1,32 @@
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name localhost;
+    gzip  on;
+
+    ssl_session_cache           builtin:1000  shared:SSL:10m;
+    ssl_protocols               TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers                 HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK:!aECDH:!3DES:!DH:!SSLv3;
+    ssl_prefer_server_ciphers   on;
+
+    # Server Certificate Verification
+    ssl_certificate /ssl/server.localhost.cert.pem;
+    ssl_certificate_key /ssl/server.localhost.key.pem;
+    ssl_password_file /ssl/server_localhost_pass;
+
+    # Client Certificate Verification
+    ssl_client_certificate /ssl/ca-chain.cert.pem;
+    ssl_verify_client optional;
+    ssl_verify_depth 2;
+    ssl_crl /ssl/crl-chain.pem;
+
+    location /protection-magic/ {
+
+        if ($ssl_client_verify != SUCCESS) {
+           return 403;
+        }
+    }
+
+    index index.html;
+    root /var/www/public/;
+}
